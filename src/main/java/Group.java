@@ -99,9 +99,9 @@ public class Group implements Runnable {
         int i = 0;
         public void run( ){
             while(true){
-                handler.handle(i);
                 try {
                     Thread.sleep(60000); // wait for 1 minute
+                    handler.handle(i);
                 } catch ( Exception e){
                     System.out.println(e.getMessage());
                 }

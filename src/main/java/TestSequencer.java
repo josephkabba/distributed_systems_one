@@ -38,13 +38,13 @@ public class TestSequencer {
         GUI.GUIHandler guiHandler = new GUI.GUIHandler() {
             @Override
             public void getTextInput(String message) {
-                send(date, message, testsequencer, finalSender);
+                send(date, message, testsequencer, finalSender, false);
             }
 
             @Override
             public void stressTest() {
                 for (int i = 0; i <= 30; i++){
-                    send(date, "message: " + i, testsequencer, finalSender);
+                    send(date, "Stress testing network: " + i, testsequencer, finalSender, true);
                 }
             }
         };
@@ -55,9 +55,15 @@ public class TestSequencer {
                 Message messageFrom = Message.fromByteStream(msg);
                 String message = new String(messageFrom.getMsg());
 
-                gui.queueMessage("Message from " + messageFrom.getSender() + ": " + message);
+                if (messageFrom.getMsgID() != -1) {
+                    gui.queueMessage("Message from " + messageFrom.getSender() + ": " + message);
+                }else {
+                    System.out.println("Pinging: " + messageFrom.getSender() + ": " + message);
+                }
 
-                seguences.push(messageFrom.getLastSequence());
+                if (messageFrom.getMsgID() != -1) {
+                    seguences.push(messageFrom.getLastSequence());
+                }
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -66,7 +72,7 @@ public class TestSequencer {
         };
 
         Group.HeartBeater.HeartBeaterHandler heartBeaterHandler = (int i) -> {
-            send(date, "pinging: " + i, testsequencer, finalSender);
+            send(date, "Testing network: " + i, testsequencer, finalSender, true);
         };
 
         gui = new GUI(guiHandler);
@@ -80,10 +86,16 @@ public class TestSequencer {
 
     }
 
-    private static void send(Date date, String message, Sequencer testsequencer, String sender) {
+    private static void send(Date date, String message, Sequencer testsequencer, String sender, boolean pinging) {
 
         try {
+
             String message_id = "15786" + date.getTime();
+
+            if (pinging) {
+                message_id = "-1";
+            }
+
             if (message.toLowerCase().trim().equals("exit")) {
                 if(gui != null) {
                     gui.close();
