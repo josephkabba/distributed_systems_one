@@ -44,7 +44,7 @@ public class TestSequencer {
             @Override
             public void stressTest() {
                 for (int i = 0; i <= 30; i++){
-                    send(date, "Testing network: " + i, testsequencer, finalSender, true);
+                    send(date, "Stress testing network: " + i, testsequencer, finalSender, true);
                 }
             }
         };
@@ -72,7 +72,7 @@ public class TestSequencer {
         };
 
         Group.HeartBeater.HeartBeaterHandler heartBeaterHandler = (int i) -> {
-            send(date, "pinging: " + i, testsequencer, finalSender, true);
+            send(date, "Testing network: " + i, testsequencer, finalSender, true);
         };
 
         gui = new GUI(guiHandler);
