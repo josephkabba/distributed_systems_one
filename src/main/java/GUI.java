@@ -21,11 +21,13 @@ public class GUI extends JFrame {
         JTextField tf = new JTextField(10);
         JButton send = new JButton("Send");
         JButton stressTest = new JButton("Stress test");
+        JButton showHistory = new JButton("Show History");
         JScrollPane scrollPane = new JScrollPane();
         panel.add(label);
         panel.add(tf);
         panel.add(send);
         panel.add(stressTest);
+        panel.add(showHistory);
 
         listModel = new DefaultListModel<>();
         JList<String> jList = new JList<>(listModel);
@@ -40,6 +42,10 @@ public class GUI extends JFrame {
             handler.stressTest();
         });
 
+        showHistory.addActionListener(actionEvent -> {
+            handler.showMessageHistory();
+        });
+
         //Adding Components to the frame.
         this.getContentPane().add(BorderLayout.SOUTH, panel);
         this.getContentPane().add(BorderLayout.CENTER, jList);
@@ -51,6 +57,15 @@ public class GUI extends JFrame {
     public void close(){
         this.close();
     }
+    public void showHistory(String[] messages) {
+        if(listModel != null){
+            listModel.clear();
+
+            for (String message : messages){
+                listModel.addElement(message);
+            }
+        }
+    }
 
 
     public void queueMessage(String message){
@@ -60,5 +75,7 @@ public class GUI extends JFrame {
     public interface GUIHandler{
         void getTextInput(String message);
         void stressTest();
+
+        void showMessageHistory();
     }
 }

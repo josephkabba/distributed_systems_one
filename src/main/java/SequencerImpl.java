@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SequencerImpl implements Sequencer {
+public class SequencerImpl implements Sequencer<Message[]> {
 
     private final Group group;
     private final ExecutorService executorService;
@@ -65,7 +65,9 @@ public class SequencerImpl implements Sequencer {
 
         try {
             group.send(Message.toByteStream(message));
-            history.addMessage(message);
+            if (message.getMsgID() != -1) {
+                history.addMessage(message);
+            }
         } catch (Exception e) {
             throw new RemoteException(e.getMessage());
         }
@@ -85,6 +87,11 @@ public class SequencerImpl implements Sequencer {
         } catch (Group.GroupException e) {
             throw new RemoteException(e.getMessage());
         }
+    }
+
+    @Override
+    public Message[] getMessageHistory() {
+        return history.getMessages();
     }
 
     @Override

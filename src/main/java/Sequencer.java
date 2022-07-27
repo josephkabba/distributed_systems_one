@@ -2,7 +2,7 @@ import java.rmi.*;
 import java.net.*;
 import java.io.*;
 
-public interface Sequencer extends Remote
+public interface Sequencer<T> extends Remote
 {
     // join -- request for "sender" to join sequencer's multicasting service;
     // returns an object specifying the multicast address and the first sequence number to expect
@@ -25,4 +25,6 @@ public interface Sequencer extends Remote
     // heartbeat -- we have received messages up to number "lastSequenceReceived"
    public void heartbeat(String sender, long lastSequenceReceived)
         throws RemoteException;
+
+   public T getMessageHistory();
 }

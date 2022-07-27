@@ -1,29 +1,14 @@
 import java.rmi.RemoteException;
-import java.time.ZoneId;
 import java.util.*;
-import java.time.LocalDate;
+
 public class TestSequencer {
     static Stack<Long> seguences;
-    static Sequencer testsequencer;
-    static  GUI gui;
+    static Sequencer<Message[]> sequencer;
+    static GUI gui;
 
     public static void main(String[] args) {
         seguences = new Stack<>();
-
-        int min = 1;
-        int max = 254;
-        // Random number selection
-        int random_int = (int) Math.floor(Math.random() * (max - min + 1) + min);
-
-        // Date section
         Date date = new Date();
-        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        int year = localDate.getYear();
-        int month = localDate.getMonthValue();
-        int day = localDate.getDayOfMonth();
-
-        // dynamic multicast IPAddress
-        //  String multicastAddress = "234." + day + "." + month + "." + random_int;
 
         //static multicast IPAddress
         String multicastAddress = "234.20.7.1";
@@ -38,14 +23,23 @@ public class TestSequencer {
         GUI.GUIHandler guiHandler = new GUI.GUIHandler() {
             @Override
             public void getTextInput(String message) {
-                send(date, message, testsequencer, finalSender, false);
+                send(date, message, sequencer, finalSender, false);
             }
 
             @Override
             public void stressTest() {
-                for (int i = 0; i <= 30; i++){
-                    send(date, "Stress testing network: " + i, testsequencer, finalSender, true);
+                for (int i = 0; i <= 30; i++) {
+                    send(date, "Stress testing network: " + i, sequencer, finalSender, true);
                 }
+            }
+
+            @Override
+            public void showMessageHistory() {
+                String[] messages = Arrays.stream(sequencer.getMessageHistory())
+                        .map(message -> "History: " + message.getSender() + ": " + new String(message.getMsg()))
+                        .toArray(String[]::new);
+
+                gui.showHistory(messages);
             }
         };
 
@@ -57,7 +51,7 @@ public class TestSequencer {
 
                 if (messageFrom.getMsgID() != -1) {
                     gui.queueMessage("Message from " + messageFrom.getSender() + ": " + message);
-                }else {
+                } else {
                     System.out.println("Pinging: " + messageFrom.getSender() + ": " + message);
                 }
 
@@ -72,21 +66,21 @@ public class TestSequencer {
         };
 
         Group.HeartBeater.HeartBeaterHandler heartBeaterHandler = (int i) -> {
-            send(date, "Testing network: " + i, testsequencer, finalSender, true);
+            send(date, "Testing network: " + i, sequencer, finalSender, true);
         };
 
         gui = new GUI(guiHandler);
-        testsequencer = new SequencerImpl(multicastAddress, handler, heartBeaterHandler, sender);
+        sequencer = new SequencerImpl(multicastAddress, handler, heartBeaterHandler, sender);
 
         try {
-            testsequencer.join(sender);
+            sequencer.join(sender);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    private static void send(Date date, String message, Sequencer testsequencer, String sender, boolean pinging) {
+    private static void send(Date date, String message, Sequencer<Message[]> sequencer, String sender, boolean pinging) {
 
         try {
 
@@ -97,14 +91,14 @@ public class TestSequencer {
             }
 
             if (message.toLowerCase().trim().equals("exit")) {
-                if(gui != null) {
+                if (gui != null) {
                     gui.close();
                 }
-                testsequencer.leave(sender);
-            }else if(!message.toLowerCase().trim().isEmpty()) {
+                sequencer.leave(sender);
+            } else if (!message.toLowerCase().trim().isEmpty()) {
                 long lastSequence = 0;
                 if (!seguences.empty()) lastSequence = seguences.peek();
-                testsequencer.send(sender, message.trim().getBytes(), Long.parseLong(message_id), lastSequence);
+                sequencer.send(sender, message.trim().getBytes(), Long.parseLong(message_id), lastSequence);
                 seguences.push(lastSequence + 1);
             }
         } catch (RemoteException e) {
