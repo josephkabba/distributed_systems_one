@@ -3,7 +3,7 @@ import java.util.*;
 
 public class TestSequencer {
     static Stack<Long> seguences;
-    static Sequencer<Message[]> sequencer;
+    static Sequencer sequencer;
     static GUI gui;
 
     public static void main(String[] args) {
@@ -44,12 +44,16 @@ public class TestSequencer {
         };
 
 
+        String finalSender1 = sender;
         Group.MsgHandler handler = (count, msg) -> {
             try {
                 Message messageFrom = Message.fromByteStream(msg);
                 String message = new String(messageFrom.getMsg());
 
                 if (messageFrom.getMsgID() != -1) {
+                    if (!Objects.equals(messageFrom.getSender(), finalSender1)) {
+                        sequencer.addToHistory(messageFrom);
+                    }
                     gui.queueMessage("Message from " + messageFrom.getSender() + ": " + message);
                 } else {
                     System.out.println("Pinging: " + messageFrom.getSender() + ": " + message);
@@ -80,7 +84,7 @@ public class TestSequencer {
 
     }
 
-    private static void send(Date date, String message, Sequencer<Message[]> sequencer, String sender, boolean pinging) {
+    private static void send(Date date, String message, Sequencer sequencer, String sender, boolean pinging) {
 
         try {
 

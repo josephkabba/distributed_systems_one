@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SequencerImpl implements Sequencer<Message[]> {
+public class SequencerImpl implements Sequencer {
 
     private final Group group;
     private final ExecutorService executorService;
@@ -65,13 +65,18 @@ public class SequencerImpl implements Sequencer<Message[]> {
 
         try {
             group.send(Message.toByteStream(message));
-            if (message.getMsgID() != -1) {
-                history.addMessage(message);
-            }
+            addToHistory(message);
         } catch (Exception e) {
             throw new RemoteException(e.getMessage());
         }
 
+    }
+
+    @Override
+    public void addToHistory(Message message){
+        if (message.getMsgID() != -1) {
+            history.addMessage(message);
+        }
     }
 
     @Override
@@ -114,7 +119,6 @@ public class SequencerImpl implements Sequencer<Message[]> {
 
     @Override
     public void heartbeat(String sender, long lastSequenceReceived) throws RemoteException {
-        // heartbeat -- we have received messages up to number "lastSequenceReceived"
 
     }
 }
